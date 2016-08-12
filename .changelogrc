@@ -1,0 +1,50 @@
+{
+    "app_name": "cljsrn-re-frame-workers",
+    "intro": "A library supporting react-native-workers with re-frame for ClojureScript and React Native.",
+    "branch" : "",
+    "repo_url": "",
+    "version" : "v0.1.2",
+    "file": 'CHANGELOG.md',
+    "sections": [
+        {
+            "title": "Bug Fixes",
+            "grep": "^fix"
+        },
+        {
+            "title": "Features",
+            "grep": "^feat"
+        },
+        {
+            "title": "Documentation",
+            "grep": "^docs"
+        },
+        {
+            "title": "Breaking changes",
+            "grep": "BREAKING"
+        },
+        {
+            "title": "Refactor",
+            "grep": "^refactor"
+        },
+        {
+            "title": "Style",
+            "grep": "^style"
+        },
+        {
+            "title": "Test",
+            "grep": "^test"
+        },
+        {
+            "title": "Chore",
+            "grep": "^chore"
+        },
+        {
+            "title": "Branchs merged",
+            "grep": "^Merge branch"
+        },
+        {
+            "title" : "Pull requests merged",
+            "grep": "^Merge pull request"
+        }
+    ]
+}

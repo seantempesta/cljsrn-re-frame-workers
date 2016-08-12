@@ -1,4 +1,4 @@
-(defproject cljsrn-re-frame-workers "0.1.1-SNAPSHOT"
+(defproject cljsrn-re-frame-workers "0.1.2"
   :description "A library supporting react-native-workers with re-frame for ClojureScript and React Native."
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"

@@ -8,6 +8,3 @@
 
 (dispatch-sync [:initialize-db])
 (re-frame-worker/init-worker)
-
-(.log js/console "App-DB: worker" (str @app-db))
-
