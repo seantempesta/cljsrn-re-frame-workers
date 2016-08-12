@@ -1,6 +1,6 @@
 # ClojureScript Re-Frame Workers
 
-A library integrating react-native-workers and re-frame for ClojureScript React Native magic.
+A library integrating [react-native-workers](https://github.com/devfd/react-native-workers) and [re-frame](https://github.com/Day8/re-frame) for ClojureScript React Native magic.
 
 ![](https://clojars.org/cljsrn-re-frame-workers/latest-version.svg)
 
