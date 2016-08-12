@@ -32,7 +32,7 @@
 
 (defn receive-subscription
   "When the main thread issues a subscribe, subscribe in the worker,
-  store it in the subscriptions atom, and deref it in a reagent (run!)
+  store it in the subscriptions atom, and deref it in a reagent track!
   statement so all future results get forwarded back to the Main thread."
   [sub-v]
   (.log js/console "WORKER: received subscription vector" (str sub-v))

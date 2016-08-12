@@ -1,23 +1,139 @@
-# cljsrn-re-frame-workers
+# ClojureScript Re-Frame Workers
 
-A library supporting react-native-workers with re-frame for ClojureScript and React Native.
+A library integrating react-native-workers and re-frame for ClojureScript React Native magic.
+
+##### [Warning: Alpha quality]
+
+## Features:
+- Offload all computations except for rendering and get rid of jank!  There are too many non-native parts about `react-native`!
+- Swap in API to move all `re-frame` computations (handlers/subscribers) to a worker thread
+- Go ahead and throw more work in there!  I've also offloaded my `Firebase` and `Datascript` queries.
+- In DEBUG mode use `re-frame` normally, and enable the worker during `prod-build`
+- In theory it works with both iOS and Android (I've only tested it on iOS)
 
 ## Usage
 
-# Create a new project
-re-natal init WorkerTest
-cd worker-test
+### Create a new project
+- `re-natal init WorkerTest`
+- `cd worker-test`
 
-# install react-native-workers
-npm install react-native-workers --save
-rnpm link react-native-workers
+### Install react-native-workers
+- `npm install react-native-workers --save`
+- `rnpm link react-native-workers`
 
-# tell re-natal about the dependency
-re-natal use-component react-native-workers
-re-natal use-figwheel
+### Tell re-natal about the dependency
+- `re-natal use-component react-native-workers`
+- `re-natal use-figwheel`
 
+### Add a `worker.cljs` file to your project
+```clojure
+(ns worker-test.worker
+  (:require [cljsrn-re-frame-workers.worker :as re-frame-worker]
+            [reagent.core :as r :refer [atom]]
+            [re-frame.core :refer [subscribe dispatch dispatch-sync]]
+            [re-frame.db :refer [app-db]]
+            [worker-test.handlers]
+            [worker-test.subs]))
 
-add stuff to project.clj
+(dispatch-sync [:initialize-db])
+(re-frame-worker/init-worker)
+```
+#### Any code or dependencies referenced in this file will run in a worker!
+
+### Replace all references to re-frame's `subscribe`, `dispatch` and `dispatch-sync` with the worker's api:
+```clojure
+(ns worker-test.ios.core
+  (:require [reagent.core :as r :refer [atom]]
+            [worker-test.handlers]
+            [worker-test.subs]
+            [cljsrn-re-frame-workers.worker-api :refer [subscribe dispatch dispatch-sync init-worker]]))
+```
+
+### On startup, initialize the worker
+```clojure
+(init-worker "worker.js" #(reset! worker-ready? true)))
+```
+
+### Modify your `project.clj` file to build a worker
+```clojure
+:worker  {:source-paths ["src"]
+          :compiler     {:output-to     "worker.js"
+                         :main          "worker-test.worker"
+                         :output-dir    "target/worker"
+                         :optimizations :simple
+                         :closure-defines {"goog.DEBUG" false}}}
+```
+
+## What's going on under the hood?
+
+#### Let's follow a request:
+A todo-list app (of course!) mounts with a subscription for all todos:
+```clojure
+(defn todo-list []
+  (let [todos (subscribe [:all-todos])]
+    (fn []
+      [render-todos @todos])))
+```
+The worker api detects if the worker is running and forwards it either directly to re-frame (in development) or to an intermediary layer.
+```clojure
+(defn subscribe [sub-v]
+  (if @use-worker?
+    (worker-utils/subscribe sub-v)
+    (re-frame.core/subscribe sub-v)))
+```
+The intermediary layer checks to see if it's seen the subscription vector before:
+- If yes, immediately return an ratom containing the most recent results
+- If not, forward the request to the worker (using `cljs-transit`), and create a new ratom to hold the future results and return it.
+
+```clojure
+(defn subscribe
+  "Accept the re-frame subscription, see if it's stored in subscriptions (if so return it),
+   otherwise create an ratom with metadata {:loading true} and forward the subscription to the worker.
+  Later when reaction results come in, we can just update the ratom."
+  [sub-v]
+  (if-let [existing-ratom (get @subscriptions sub-v)]
+    existing-ratom
+    (let [new-ratom (r/atom nil :meta {:loading true})
+          transit-m (t/write tw [:subscribe sub-v])]
+      (swap! subscriptions assoc sub-v new-ratom)
+      (.postMessage @worker transit-m)
+      new-ratom)))
+```
+
+NOTE: (`:meta {:loading true}` will be designated so you know the state of the subscription)
+
+The worker receives the subscription request, subscribes with the subscription vector with re-frame and runs `reagent.core/track!` to forward the immediate (and all future) results back to the main thread.
+
+```clojure
+(defn receive-subscription
+  "When the main thread issues a subscribe, subscribe in the worker,
+  store it in the subscriptions atom, and deref it in a reagent track!
+  statement so all future results get forwarded back to the main thread."
+  [sub-v]
+  (when-not (contains? @subscriptions sub-v)
+    (let [new-sub (subscribe sub-v)]
+      (swap! subscriptions assoc sub-v new-sub)
+      (r/track! send-reaction-results sub-v new-sub))))
+```
+
+Dispatches are even easier as we just need to forward them to the worker.
+
+#### Check out the example project for more details or read the code!  I think it's only 150 lines of code (with comments!)
+
+## What's wrong with it?
+* Since subscriptions immediately return an ratom with nil, you'll have to code defensively or check for metadata before rendering:
+   ```clojure
+   (let [todos (or @sub-result [])]
+   ```
+   ```clojure
+  (if (:loading (meta sub-result))
+    [spinner-component]
+    [main-view @sub-result])
+   ```
+* Right now subscriptions immediately trigger computation on the worker even if you don't deref it in the component.  Then again, subscriptions shouldn't be launching missiles so this might not be too bad.
+* Double the memory for every subscription.  Results are being cached in memory on the main app and the worker.
+* Subscriptions do not free up their memory even after the component unmounts.  (I plan to fix this soon)
+* Many many other things I'm sure.  But then again, I swapped it into my app and nothing broke.  How many projects can you move half of your code to a worker thread and not have anything break?!
 
 
 ## License
