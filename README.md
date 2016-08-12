@@ -7,8 +7,8 @@ A library integrating [react-native-workers](https://github.com/devfd/react-nati
 ##### [Warning: Alpha quality]
 
 ## Features:
-- Offload all computations except for rendering and get rid of jank!  There are too many non-native parts about `react-native`!
 - Swap in API to move all `re-frame` computations (handlers/subscribers) to a worker thread
+- Offload all computations except for rendering and get rid of jank!  There are too many non-native parts about `react-native`!
 - Go ahead and throw more work in there!  I've also offloaded my `Firebase` and `Datascript` queries.
 - In DEBUG mode use `re-frame` normally, and enable the worker during `prod-build`
 - In theory it works with both iOS and Android (I've only tested it on iOS)
@@ -155,7 +155,8 @@ Dispatches are even easier as we just need to forward them to the worker.
 * Right now subscriptions immediately trigger computation on the worker even if you don't deref it in the component.  Then again, subscriptions shouldn't be launching missiles so this might not be too bad.
 * Double the memory for every subscription.  Results are being cached in memory on the main app and the worker.
 * Subscriptions do not free up their memory even after the component unmounts.  (I plan to fix this soon)
-* Many many other things I'm sure.  But then again, I swapped it into my app and nothing broke.  How many projects can you move half of your code to a worker thread and not have anything break?!
+
+Many many other things I'm sure.  But then again, I swapped it into my app and nothing broke.  How many projects can you move half of your code to a worker thread and not have anything break?!
 
 
 ## License
