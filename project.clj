@@ -1,8 +1,8 @@
 (defproject cljsrn-re-frame-workers "0.1.2"
   :description "A library supporting react-native-workers with re-frame for ClojureScript and React Native."
-  :url "http://example.com/FIXME"
-  :license {:name "Eclipse Public License"
-            :url  "http://www.eclipse.org/legal/epl-v10.html"}
+  :url "https://github.com/seantempesta/cljsrn-re-frame-workers"
+  :license {:name "MIT"
+            :url  "https://opensource.org/licenses/MIT"}
   :dependencies [[org.clojure/clojure "1.9.0-alpha10"]
                  [org.clojure/clojurescript "1.9.89"]
                  [com.cognitect/transit-cljs "0.8.237"]

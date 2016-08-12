@@ -38,7 +38,7 @@ A library integrating react-native-workers and re-frame for ClojureScript React 
 (dispatch-sync [:initialize-db])
 (re-frame-worker/init-worker)
 ```
-#### Any code or dependencies referenced in this file will run in a worker!
+[NOTE: Any code or dependencies referenced in this file will run in a worker!]
 
 ### Replace all references to re-frame's `subscribe`, `dispatch` and `dispatch-sync` with the worker's api:
 ```clojure
@@ -63,6 +63,13 @@ A library integrating react-native-workers and re-frame for ClojureScript React 
                          :optimizations :simple
                          :closure-defines {"goog.DEBUG" false}}}
 ```
+
+### Then build it
+`lein with-profile prod cljsbuild once worker`
+
+### And when you're ready to deploy the app, package it with react native's packager.
+`/usr/local/bin/node "./node_modules/react-native/local-cli/cli.js" bundle  --entry-file ./worker.js --platform ios --dev false --bundle-output "ios/worker.jsbundle"
+`
 
 ## What's going on under the hood?
 
@@ -116,6 +123,18 @@ The worker receives the subscription request, subscribes with the subscription v
       (r/track! send-reaction-results sub-v new-sub))))
 ```
 
+The main thread receives the updated results and swaps them in.
+```clojure
+(defn receive-reaction-results
+  "Lookup the ratom, reset the metadata so we know the data has arrived and
+  put the new results in.  This will trigger updates in any reagent components
+  that subscribed.  Wrap the update in an InteractionManager call to not interrupt animations."
+  [{:keys [sub-v data]}]
+  (let [existing-ratom (get @subscriptions sub-v)]
+    (.runAfterInteractions InteractionManager #(do (reset-meta! existing-ratom {:loading false})
+                                                   (reset! existing-ratom data)))))
+```
+
 Dispatches are even easier as we just need to forward them to the worker.
 
 #### Check out the example project for more details or read the code!  I think it's only 150 lines of code (with comments!)
@@ -130,6 +149,7 @@ Dispatches are even easier as we just need to forward them to the worker.
     [spinner-component]
     [main-view @sub-result])
    ```
+* Debugging problems with the worker is rough.  As of right now you can't use Chrome.  I'm trying to figure out why.
 * Right now subscriptions immediately trigger computation on the worker even if you don't deref it in the component.  Then again, subscriptions shouldn't be launching missiles so this might not be too bad.
 * Double the memory for every subscription.  Results are being cached in memory on the main app and the worker.
 * Subscriptions do not free up their memory even after the component unmounts.  (I plan to fix this soon)
