@@ -1,14 +1,12 @@
 (ns cljsrn-re-frame-workers.worker
+  (:require-macros [reagent.ratom :refer [run!]])
   (:require [cognitect.transit :as t]
-            [reagent.core :as r]
-            [re-frame.core :refer [subscribe dispatch dispatch-sync]]
-            [re-frame.db :refer [app-db]]))
+            [re-frame.core :refer [subscribe dispatch dispatch-sync]]))
 
 (defonce Self (.-self (js/require "react-native-workers"))) ;; "self" is the worker thread
 (defonce subscriptions (atom {}))                           ;; store all subscriptions here
 (defonce tr (t/reader :json))                               ;; transit writer for converting json data to clj
 (defonce tw (t/writer :json))                               ;; transit writer for converting clj data to json
-(defonce trace false)                                       ;; enable for more logging
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Worker -> Main Functions
@@ -17,13 +15,12 @@
 (defn send-reaction-results
   "Most communication with the main thread is forwarding reaction results.
   Wrap it up in a transit message and send it on!"
-  [sub-v data-sub]
+  [sub-v data]
   (let [operation :reaction-results
         args {:sub-v sub-v
-              :data  @data-sub}
+              :data  data}
         message [operation args]
         transit-message (t/write tw message)]
-    (when trace (.log js/console "WORKER: Trace: Sending results to MAIN" (str transit-message)))
     (.postMessage Self transit-message)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -38,9 +35,8 @@
   (.log js/console "WORKER: received subscription vector" (str sub-v))
   (when-not (contains? @subscriptions sub-v)
     (let [new-sub (subscribe sub-v)]
-      (when trace (.log js/console "WORKER: Trace: Reusults = " @new-sub))
       (swap! subscriptions assoc sub-v new-sub)
-      (r/track! send-reaction-results sub-v new-sub))))
+      (run! (send-reaction-results sub-v @new-sub)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;  Worker init and fn dispatch
@@ -53,7 +49,7 @@
   (let [message (t/read tr transit-message)
         operation (first message)
         args (first (rest message))]
-    (.log js/console "WORKER: Message received:" (str operation args))
+    (.log js/console "WORKER: Message received:" (str operation))
     (case operation
       :subscribe (receive-subscription args)
       :dispatch (dispatch args)

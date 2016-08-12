@@ -18,9 +18,6 @@
 (defonce tr (t/reader :json))                               ;; transit writer for converting json data to clj
 (defonce tw (t/writer :json))                               ;; transit writer for converting clj data to json
 
-;; Debugging
-(defonce trace false)
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;  Main -> Worker Functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -32,12 +29,12 @@
   [sub-v]
   (.log js/console "MAIN: Subscribe called:" (str sub-v))
   (if-let [existing-ratom (get @subscriptions sub-v)]
-    (do (when trace (.log js/console "MAIN: Returning existing ratom."))
+    (do (.log js/console "MAIN: Returning existing ratom.")
         existing-ratom)
     (let [new-ratom (r/atom nil :meta {:loading true})
           transit-m (t/write tw [:subscribe sub-v])]
       (swap! subscriptions assoc sub-v new-ratom)
-      (when trace (.log js/console "MAIN: Forwarding subscription request to worker" (str transit-m)))
+      (.log js/console "MAIN: Forwarding subscription request to worker" (str transit-m))
       (.postMessage @worker transit-m)
       new-ratom)))
 
@@ -65,11 +62,11 @@
   put the new results in.  This will trigger updates in any reagent components
   that subscribed.  Wrap the update in an InteractionManager call to not interrupt animations."
   [{:keys [sub-v data]}]
-  (.log js/console "MAIN: Subscription reaction received:" (str sub-v data))
+  (.log js/console "MAIN: Subscription reaction received:" (str sub-v))
   (let [existing-ratom (get @subscriptions sub-v)]
-    (when trace (.log js/console "MAIN: Found existing ratom " (str @existing-ratom)))
-    (.runAfterInteractions InteractionManager #(do (reset-meta! existing-ratom {:loading false})
-                                                   (reset! existing-ratom data)))))
+    (.runAfterInteractions InteractionManager
+                           #((reset-meta! existing-ratom {:loading false})
+                             (reset! existing-ratom data)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -82,12 +79,14 @@
 
   Expects a vector with operation and args.
   Ex. [:reaction-results [:hello-msg \"Hi!\"]]
+
+  [Optional: ready-fn that will be run when the worker is ready]
   "
   [transit-message ready-fn]
   (let [message (t/read tr transit-message)
         operation (first message)
         args (first (rest message))]
-    (.log js/console "MAIN: Received message from worker" (str message))
+    (.log js/console "MAIN: Received message from worker" operation)
     (case operation
       :worker-ready (when ready-fn (ready-fn))
       :reaction-results (receive-reaction-results args))))
@@ -97,10 +96,11 @@
   on-message dispatch function.
 
   [Optional: ready-fn that will be run when this worker has been initialized.]
+  [TODO!: Path to the worker bundle is hardcoded so the worker-file arg is bullshit. Fix this!]
   "
   ([worker-file] (init-worker worker-file nil))
   ([worker-file ready-fn]
-   (.log js/console "MAIN: Starting worker:" (str worker-file))
-   (let [worker-init (Worker. worker-file)]
-     (aset worker-init "onmessage" #(on-message % ready-fn))
-     (reset! worker worker-init))))
+  (.log js/console "MAIN: Starting worker:" worker-file)
+  (let [worker-init (Worker. worker-file)]
+    (aset worker-init "onmessage" #(on-message % ready-fn))
+    (reset! worker worker-init))))
