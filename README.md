@@ -141,14 +141,14 @@ Dispatches are even easier as we just need to forward them to the worker.
 
 ## What's wrong with it?
 * Since subscriptions immediately return an ratom with nil, you'll have to code defensively or check for metadata before rendering:
-   ```clojure
-   (let [todos (or @sub-result [])]
-   ```
-   ```clojure
+```clojure
+  (let [todos (or @sub-result [])]
+```
+```clojure
   (if (:loading (meta sub-result))
     [spinner-component]
     [main-view @sub-result])
-   ```
+```
 * Debugging problems with the worker is rough.  As of right now you can't use Chrome.  I'm trying to figure out why.
 * Right now subscriptions immediately trigger computation on the worker even if you don't deref it in the component.  Then again, subscriptions shouldn't be launching missiles so this might not be too bad.
 * Double the memory for every subscription.  Results are being cached in memory on the main app and the worker.
