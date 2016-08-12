@@ -15,19 +15,19 @@ A library integrating react-native-workers and re-frame for ClojureScript React 
 
 ## Usage
 
-### Create a new project
+#### Create a new project
 - `re-natal init WorkerTest`
 - `cd worker-test`
 
-### Install react-native-workers
+#### Install react-native-workers
 - `npm install react-native-workers --save`
 - `rnpm link react-native-workers`
 
-### Tell re-natal about the dependency
+#### Tell re-natal about the dependency
 - `re-natal use-component react-native-workers`
 - `re-natal use-figwheel`
 
-### Add a `worker.cljs` file to your project
+#### Add a `worker.cljs` file to your project
 ```clojure
 (ns worker-test.worker
   (:require [cljsrn-re-frame-workers.worker :as re-frame-worker]
@@ -42,7 +42,7 @@ A library integrating react-native-workers and re-frame for ClojureScript React 
 ```
 [NOTE: Any code or dependencies referenced in this file will run in a worker!]
 
-### Replace all references to re-frame's `subscribe`, `dispatch` and `dispatch-sync` with the worker's api:
+#### Replace all references to re-frame's `subscribe`, `dispatch` and `dispatch-sync` with the worker's api:
 ```clojure
 (ns worker-test.ios.core
   (:require [reagent.core :as r :refer [atom]]
@@ -51,12 +51,12 @@ A library integrating react-native-workers and re-frame for ClojureScript React 
             [cljsrn-re-frame-workers.worker-api :refer [subscribe dispatch dispatch-sync init-worker]]))
 ```
 
-### On startup, initialize the worker
+#### On startup, initialize the worker
 ```clojure
 (init-worker "worker.js" #(reset! worker-ready? true)))
 ```
 
-### Modify your `project.clj` file to build a worker
+#### Modify your `project.clj` file to build a worker
 ```clojure
 :worker  {:source-paths ["src"]
           :compiler     {:output-to     "worker.js"
@@ -66,10 +66,10 @@ A library integrating react-native-workers and re-frame for ClojureScript React 
                          :closure-defines {"goog.DEBUG" false}}}
 ```
 
-### Then build it
+#### Then build it
 `lein with-profile prod cljsbuild once worker`
 
-### And when you're ready to deploy the app, package it with react native's packager.
+#### And when you're ready to deploy the app, package it with react native's packager.
 `/usr/local/bin/node "./node_modules/react-native/local-cli/cli.js" bundle  --entry-file ./worker.js --platform ios --dev false --bundle-output "ios/worker.jsbundle"
 `
 
