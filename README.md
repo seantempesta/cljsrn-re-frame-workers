@@ -72,6 +72,8 @@ A library integrating [react-native-workers](https://github.com/devfd/react-nati
 ##### And when you're ready to deploy the app, package it with react native's packager.
 `/usr/local/bin/node "./node_modules/react-native/local-cli/cli.js" bundle  --entry-file ./worker.js --platform ios --dev false --bundle-output "ios/worker.jsbundle"
 `
+## Check out the example project for more details or read the code!  I think it's only 150 lines of code (with comments!)
+
 
 ## What's going on under the hood? Let's follow a request!
 
@@ -138,7 +140,6 @@ The main thread receives the updated results and swaps them in.
 
 Dispatches are even easier as we just need to forward them to the worker.
 
-##### Check out the example project for more details or read the code!  I think it's only 150 lines of code (with comments!)
 
 ## What's wrong with it?
 * Since subscriptions immediately return an ratom with nil, you'll have to code defensively or check for metadata before rendering:
