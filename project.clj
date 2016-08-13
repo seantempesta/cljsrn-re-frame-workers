@@ -1,4 +1,4 @@
-(defproject cljsrn-re-frame-workers "0.1.2"
+(defproject cljsrn-re-frame-workers "0.1.3"
   :description "A library supporting react-native-workers with re-frame for ClojureScript and React Native."
   :url "https://github.com/seantempesta/cljsrn-re-frame-workers"
   :license {:name "MIT"

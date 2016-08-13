@@ -5,7 +5,7 @@
                       :url  "http://www.eclipse.org/legal/epl-v10.html"}
             :dependencies [[org.clojure/clojure "1.9.0-alpha10"]
                            [org.clojure/clojurescript "1.9.89"]
-                           [cljsrn-re-frame-workers "0.1.1-SNAPSHOT"]
+                           [cljsrn-re-frame-workers "0.1.3"]
                            [reagent "0.6.0-rc" :exclusions [cljsjs/react cljsjs/react-dom cljsjs/react-dom-server]]
 [re-frame "0.7.0"]]
             :plugins [[lein-cljsbuild "1.1.1"]
@@ -16,9 +16,9 @@
             :aliases {"prod-build" ^{:doc "Recompile code with prod profile."}
                                    ["do" "clean"
                                     ["with-profile" "prod" "cljsbuild" "once" "ios"]
-                                    ;["with-profile" "prod" "cljsbuild" "once" "android"]
+                                    ["with-profile" "prod" "cljsbuild" "once" "android"]
                                     ["with-profile" "prod" "cljsbuild" "once" "worker"]
-                                    ;["shell" "./build-worker-bundle.sh"]
+                                    ["shell" "./build-worker-bundle.sh"]
                                     ]}
             :profiles {:dev {:dependencies [[figwheel-sidecar "0.5.0-6"]
                                             [com.cemerick/piggieback "0.2.1"]]

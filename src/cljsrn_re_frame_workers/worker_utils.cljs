@@ -7,7 +7,6 @@
 
 ;; react requires
 (defonce ReactNative (js/require "react-native"))
-(defonce InteractionManager (.-InteractionManager ReactNative)) ;; used to gently apply the reaction results
 (defonce Worker (.-Worker (js/require "react-native-workers")))
 
 ;; Worker state
@@ -63,13 +62,14 @@
 (defn receive-reaction-results
   "Lookup the ratom, reset the metadata so we know the data has arrived and
   put the new results in.  This will trigger updates in any reagent components
-  that subscribed.  Wrap the update in an InteractionManager call to not interrupt animations."
+  that subscribed."
   [{:keys [sub-v data]}]
-  (.log js/console "MAIN: Subscription reaction received:" (str sub-v data))
+  (.log js/console "MAIN: Subscription reaction received:" (str sub-v))
   (let [existing-ratom (get @subscriptions sub-v)]
-    (when trace (.log js/console "MAIN: Found existing ratom " (str @existing-ratom)))
-    (.runAfterInteractions InteractionManager #(do (reset-meta! existing-ratom {:loading false})
-                                                   (reset! existing-ratom data)))))
+    (when trace (.log js/console "MAIN: Trace: Found existing ratom " (str @existing-ratom)))
+    (reset-meta! existing-ratom {:loading false})
+    (reset! existing-ratom data)
+    (when trace (.log js/console "MAIN: Trace: Ratom is now! " (str @existing-ratom)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

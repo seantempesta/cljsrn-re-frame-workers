@@ -28,13 +28,13 @@
   (let [timing (.timing Animated spin-value #js {:toValue  1
                                                  :duration 500
                                                  :easing   (.-linear Easing)})]
-    (.start timing #(spin spin-value))))
+    (js/setTimeout #(.start timing (fn [] (spin spin-value) 50)))))
 
 (defn greeting-component []
   (let [greeting (subscribe [:get-greeting])
         primes (subscribe [:get-primes])
         spin-value (AnimatedValue. 0)]
-    (r/create-class                                         ;; <-- expects a map of functions
+    (r/create-class
       {:component-did-mount #(spin spin-value)
        :reagent-render      (fn []
                               (let [spin (.interpolate spin-value (clj->js {:inputRange  [0 1]
@@ -69,11 +69,13 @@
 (defn init-development []
   (.log js/console "DEVELOPMENT MODE -- No Worker")
   (reset! worker-ready? true)
-  (dispatch-sync [:initialize-db]))
+  (dispatch-sync [:initialize-db])
+  (dispatch [:set-greeting "Normal Re-Frame"]))
 
 (defn init-production []
   (.log js/console "PRODUCTION MODE -- Starting Worker")
-  (init-worker "worker.js" #(reset! worker-ready? true)))
+  (init-worker "worker.js" #(do (dispatch [:set-greeting "Re-Frame Worker"])
+                                (reset! worker-ready? true))))
 
 (defn init []
   (if goog.DEBUG
