@@ -12,7 +12,7 @@
                       [lein-figwheel "0.5.0-6"]
                       [lein-shell "0.5.0"]]
             :repositories {"local" "file:maven_repository"}
-            :clean-targets ["target/" "index.ios.js" "index.android.js"]
+            :clean-targets ["target/" "index.ios.js" "index.android.js" "worker.js"]
             :aliases {"prod-build" ^{:doc "Recompile code with prod profile."}
                                    ["do" "clean"
                                     ["with-profile" "prod" "cljsbuild" "once" "ios"]
