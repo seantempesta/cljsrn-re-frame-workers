@@ -13,6 +13,9 @@ A library integrating [react-native-workers](https://github.com/devfd/react-nati
 - In DEBUG mode use `re-frame` normally, and enable the worker during `prod-build`
 - In theory it works with both iOS and Android (I've only tested it on iOS)
 
+**Check out the [example project](https://github.com/seantempesta/cljsrn-re-frame-workers/tree/master/examples/worker-test) for more details or [read the code](https://github.com/seantempesta/cljsrn-re-frame-workers/tree/master/src/cljsrn_re_frame_workers)!  I think it's only 150 lines of code (with comments!)**
+
+
 ## Usage
 
 ##### Create a new project
@@ -72,7 +75,6 @@ A library integrating [react-native-workers](https://github.com/devfd/react-nati
 ##### And when you're ready to deploy the app, package it with react native's packager.
 `/usr/local/bin/node "./node_modules/react-native/local-cli/cli.js" bundle  --entry-file ./worker.js --platform ios --dev false --bundle-output "ios/worker.jsbundle"
 `
-## Check out the example project for more details or read the code!  I think it's only 150 lines of code (with comments!)
 
 
 ## What's going on under the hood? Let's follow a request!
