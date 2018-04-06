@@ -4,7 +4,11 @@ A library integrating [react-native-workers](https://github.com/devfd/react-nati
 
 ![](https://clojars.org/cljsrn-re-frame-workers/latest-version.svg)
 
-##### [Warning: Alpha quality]
+##### [Warning: Alpha quality and no longer actively developed]
+
+## Status Update:
+- I am no longer using this code due to problems with the stability of the underlying `react-native-workers` project
+- If you can get it to work, you'll probably really enjoy this code.  In my experience I found offloading all `subs` and `events` to a worker thread to be amazing in terms of performance.
 
 ## Features:
 - Swap in API to move all `re-frame` computations (handlers/subscribers) to a worker thread
